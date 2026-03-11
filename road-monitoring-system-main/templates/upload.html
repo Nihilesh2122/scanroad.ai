@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Image - Smart Road Monitoring System{% endblock %}
+
+{% block content %}
+<!-- Upload Image Page -->
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload"></i> Upload Road Image
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- Location Input -->
+                    <div class="mb-4">
+                        <label for="location" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </label>
+                        <input type="text" class="form-control" id="location" 
+                               name="location" placeholder="Enter road location (e.g., Main Street)"
+                               required>
+                    </div>
+                    
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label for="file" class="form-label">
+                            <i class="fas fa-image"></i> Select Road Image
+                        </label>
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file" class="form-control" id="file" 
+                                   name="file" accept="image/*" required
+                                   onchange="previewImage(event)">
+                            <div class="text-center mt-3">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                <p class="mt-2 text-muted">
+                                    Click to select or drag and drop an image<br>
+                                    <small>Supported formats: JPG, PNG, JPEG, GIF, BMP</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Image Preview -->
+                    <div class="mb-4" id="previewContainer" style="display: none;">
+                        <label class="form-label">
+                            <i class="fas fa-eye"></i> Image Preview
+                        </label>
+                        <div class="text-center">
+                            <img id="imagePreview" class="img-fluid rounded" 
+                                 style="max-height: 300px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search"></i> Detect Potholes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Instructions Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Tips for Best Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Use clear, well-lit images of roads</li>
+                    <li>Make sure the road surface is visible</li>
+                    <li>Avoid blurry or dark                    <li>Images with images</li>
+ multiple potholes will detect all of them</li>
+                    <li>The system will classify each pothole by severity</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for image preview -->
+<script>
+    // Function to preview the selected image
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Drag and drop functionality
+    const dropZone = document.getElementById('dropZone');
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Highlight drop zone when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight(e) {
+        dropZone.classList.add('bg-light');
+    }
+    
+    function unhighlight(e) {
+        dropZone.classList.remove('bg-light');
+    }
+    
+    // Handle dropped files
+    dropZone.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            document.getElementById('file').files = files;
+            previewImage({target: {files: files}});
+        }
+    }
+</script>
+
+<!-- Custom CSS for drop zone -->
+<style>
+    .drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .drop-zone:hover {
+        border-color: #1e3c72;
+        background-color: #f8f9fa;
+    }
+    
+    .drop-zone input[type="file"] {
+        display: none;
+    }
+</style>
+{% endblock %}
+

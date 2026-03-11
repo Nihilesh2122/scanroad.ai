@@ -1,0 +1,18 @@
+# Smart Road Monitoring System - Dependencies
+# This file lists all Python packages needed to run the project
+
+# Flask - Web framework for building the web application
+Flask==3.0.0
+
+# OpenCV - Computer vision library for image processing and pothole detection
+opencv-python-headless==4.8.1.78
+
+# NumPy - Numerical computing library (required by OpenCV)
+numpy==1.24.3
+
+# Pillow - Image processing library
+Pillow==10.1.0
+
+# Werkzeug - WSGI utilities (required by Flask)
+Werkzeug==3.0.1
+

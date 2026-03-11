@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Detection Results - Smart Road Monitoring System{% endblock %}
+
+{% block content %}
+<!-- Detection Results Page -->
+
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <h2>
+            <i class="fas fa-check-circle text-success"></i> Detection Complete
+        </h2>
+        <p class="lead">Analysis of road image from {{ location }}</p>
+    </div>
+</div>
+
+<!-- Detection Summary -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-circle text-primary"></i>
+                        </div>
+                        <h3>{{ pothole_count }}</h3>
+                        <p>Potholes Detected</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-icon">
+                            <i class="fas fa-map-marker-alt text-info"></i>
+                        </div>
+                        <h3>{{ location }}</h3>
+                        <p>Location</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock text-muted"></i>
+                        </div>
+                        <h3>{{ pothole_count }}</h3>
+                        <p>Records Saved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Comparison -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-image"></i> Original Image
+                </h5>
+            </div>
+            <div class="card-body">
+                <img src="{{ url_for('static', filename=original_image) }}" 
+                     class="img-fluid rounded" alt="Original Image">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-search"></i> Detection Result
+                </h5>
+            </div>
+            <div class="card-body">
+                <img src="{{ url_for('static', filename=processed_image) }}" 
+                     class="img-fluid rounded" alt="Processed Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Severity Details -->
+{% if severities %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> Pothole Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Pothole #</th>
+                            <th>Severity Level</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for severity in severities %}
+                        <tr>
+                            <td>Pothole #{{ loop.index }}</td>
+                            <td>
+                                {% if severity == 'Low' %}
+                                <span class="badge bg-success">Low</span>
+                                <p class="small text-muted mt-1">Minor damage, repair soon</p>
+                                {% elif severity == 'Medium' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
+                                <p class="small text-muted mt-1">Moderate damage, needs attention</p>
+                                {% else %}
+                                <span class="badge bg-danger">High</span>
+                                <p class="small text-muted mt-1">Severe damage, urgent repair needed</p>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if severity == 'Low' %}
+                                Small pothole, shallow depth
+                                {% elif severity == 'Medium' %}
+                                Medium-sized pothole, moderate depth
+                                {% else %}
+                                Large pothole, deep cavity
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Legend -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Severity Legend
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <span class="badge bg-success p-2">Low</span>
+                        <p class="mt-2">Small potholes with shallow depth</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <span class="badge bg-warning text-dark p-2">Medium</span>
+                        <p class="mt-2">Medium-sized potholes with moderate depth</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <span class="badge bg-danger p-2">High</span>
+                        <p class="mt-2">Large potholes with deep cavities</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload Another Image
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            <i class="fas fa-home"></i> Go to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+

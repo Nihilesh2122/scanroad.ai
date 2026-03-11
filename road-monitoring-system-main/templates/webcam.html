@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Webcam Detection - Smart Road Monitoring System{% endblock %}
+
+{% block content %}
+<!-- Webcam Detection Page -->
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-video"></i> Real-time Pothole Detection
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Video Display -->
+                        <div class="video-container text-center">
+                            <video id="videoElement" width="100%" autoplay playsinline></video>
+                            <canvas id="canvasElement" style="display: none;"></canvas>
+                            <img id="resultImage" class="img-fluid rounded" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Controls -->
+                        <div class="controls">
+                            <h5>Detection Status</h5>
+                            <div class="mb-3">
+                                <span id="statusBadge" class="badge bg-secondary">Not Started</span>
+                            </div>
+                            
+                            <h5>Statistics</h5>
+                            <div class="mb-3">
+                                <p>Total Frames: <span id="frameCount">0</span></p>
+                                <p>Potholes Found: <span id="potholeCount">0</span></p>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button id="startBtn" class="btn btn-success" onclick="startWebcam()">
+                                    <i class="fas fa-play"></i> Start Detection
+                                </button>
+                                <button id="stopBtn" class="btn btn-danger" onclick="stopWebcam()" disabled>
+                                    <i class="fas fa-stop"></i> Stop
+                                </button>
+                                <button id="captureBtn" class="btn btn-primary" onclick="captureFrame()" disabled>
+                                    <i class="fas fa-camera"></i> Capture & Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> How to Use
+                </h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Click "Start Detection" to begin webcam access</li>
+                    <li>Allow camera permissions when prompted</li>
+                    <li>Point the camera at the road</li>
+                    <li>The system will detect potholes in real-time</li>
+                    <li>Click "Capture & Save" to save a detection to the database</li>
+                    <li>Click "Stop" to end the session</li>
+                </ol>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Note:</strong> For best results, ensure good lighting and steady camera position.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let videoStream = null;
+    let isProcessing = false;
+    let frameCount = 0;
+    let potholeCountTotal = 0;
+    
+    const video = document.getElementById('videoElement');
+    const canvas = document.getElementById('canvasElement');
+    const resultImage = document.getElementById('resultImage');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    
+    // Start webcam
+    async function startWebcam() {
+        try {
+            // Request camera access
+            videoStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            
+            // Display video stream
+            video.srcObject = videoStream;
+            
+            // Update UI
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            captureBtn.disabled = false;
+            statusBadge.textContent = 'Running';
+            statusBadge.className = 'badge bg-success';
+            
+            // Start processing frames
+            processFrames();
+            
+        } catch (error) {
+            alert('Error accessing webcam: ' + error.message);
+            console.error(error);
+        }
+    }
+    
+    // Stop webcam
+    function stopWebcam() {
+        // Stop all tracks
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Reset video
+        video.srcObject = null;
+        
+        // Update UI
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        captureBtn.disabled = true;
+        statusBadge.textContent = 'Stopped';
+        statusBadge.className = 'badge bg-secondary';
+        
+        // Reset stats
+        frameCount = 0;
+        potholeCountTotal = 0;
+        document.getElementById('frameCount').textContent = '0';
+        document.getElementById('potholeCount').textContent = '0';
+    }
+    
+    // Process video frames
+    async function processFrames() {
+        if (!videoStream || video.paused || video.ended) {
+            return;
+        }
+        
+        // Draw video frame to canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to blob and send to server
+        if (!isProcessing) {
+            isProcessing = true;
+            
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('frame', blob, 'frame.jpg');
+                
+                try {
+                    const response = await fetch('/process_frame', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Display result image
+                        resultImage.src = result.image;
+                        resultImage.style.display = 'block';
+                        video.style.display = 'none';
+                        
+                        // Update stats
+                        frameCount++;
+                        if (result.count > 0) {
+                            potholeCountTotal += result.count;
+                        }
+                        document.getElementById('frameCount').textContent = frameCount;
+                        document.getElementById('potholeCount').textContent = potholeCountTotal;
+                    }
+                } catch (error) {
+                    console.error('Processing error:', error);
+                }
+                
+                isProcessing = false;
+            }, 'image/jpeg');
+        }
+        
+        // Continue processing
+        requestAnimationFrame(processFrames);
+    }
+    
+    // Capture and save current frame
+    async function captureFrame() {
+        if (!videoStream) {
+            alert('Please start the webcam first');
+            return;
+        }
+        
+        // Draw current frame to canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to blob
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append('frame', blob, 'capture.jpg');
+            
+            try {
+                const response = await fetch('/process_frame', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Captured! Detected ${result.count} pothole(s).`);
+                    
+                    // Update stats
+                    if (result.count > 0) {
+                        potholeCountTotal += result.count;
+                        document.getElementById('potholeCount').textContent = potholeCountTotal;
+                    }
+                }
+            } catch (error) {
+                console.error('Capture error:', error);
+                alert('Error capturing frame');
+            }
+        }, 'image/jpeg');
+    }
+</script>
+{% endblock %}
+
