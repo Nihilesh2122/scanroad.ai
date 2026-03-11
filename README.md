@@ -1,4 +1,4 @@
-# 🛣️ Pothole Detection Project
+# 🛣️ Road Monitoring System
 
 ## 📌 Overview
 
