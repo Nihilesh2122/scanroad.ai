@@ -33,12 +33,12 @@ This system supports safer transportation and smarter city management.
 
 ## 🛠️ Technologies Used
 
-* **Programming Language:** Python / JavaScript *(edit if needed)*
+* **Programming Language:** Python / JavaScript
 * **Computer Vision:** OpenCV
-* **Machine Learning / AI:** TensorFlow / YOLO *(edit if used)*
-* **Frontend:** HTML, CSS, React *(if used)*
-* **Backend:** Node.js / Flask *(if used)*
-* **Database:** MongoDB / MySQL *(if used)*
+* **Machine Learning / AI:** TensorFlow / YOLO
+* **Frontend:** HTML, CSS, React
+* **Backend:** Node.js / Flask 
+* **Database:** MongoDB / MySQL
 
 ---
 
@@ -110,9 +110,7 @@ python app.py
 
 ---
 
-## 📸 Sample Output
 
-*(Add screenshots of dashboard, detection results, or live monitoring here)*
 
 ---
 
